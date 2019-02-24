@@ -13,7 +13,7 @@ deprecated in 7.0.
 from codeop import compile_command
 import re
 import tokenize
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import warnings
 
 _indent_re = re.compile(r'^[ \t]+')
@@ -78,7 +78,7 @@ ipython_prompt = PromptStripper(re.compile(r'^(In \[\d+\]: |\s*\.{3,}: ?)'))
 def cell_magic(lines):
     if not lines or not lines[0].startswith('%%'):
         return lines
-    if re.match('%%\w+\?', lines[0]):
+    if re.match(r'%%\w+\?', lines[0]):
         # This case will be handled by help_end
         return lines
     magic_name, _, first_line = lines[0][2:-1].partition(' ')
@@ -87,7 +87,7 @@ def cell_magic(lines):
             % (magic_name, first_line, body)]
 
 
-def _find_assign_op(token_line):
+def _find_assign_op(token_line) -> Union[int, None]:
     """Get the index of the first assignment in the line ('=' not inside brackets)
 
     Note: We don't try to support multiple special assignment (a = b = %foo)
@@ -97,9 +97,9 @@ def _find_assign_op(token_line):
         s = ti.string
         if s == '=' and paren_level == 0:
             return i
-        if s in '([{':
+        if s in {'(','[','{'}:
             paren_level += 1
-        elif s in ')]}':
+        elif s in {')', ']', '}'}:
             if paren_level > 0:
                 paren_level -= 1
 
@@ -116,7 +116,7 @@ def find_end_of_continued_line(lines, start_line: int):
     return end_line
 
 def assemble_continued_line(lines, start: Tuple[int, int], end_line: int):
-    """Assemble a single line from multiple continued line pieces
+    r"""Assemble a single line from multiple continued line pieces
 
     Continued lines are lines ending in ``\``, and the line following the last
     ``\`` in the block.
@@ -449,11 +449,14 @@ class HelpEnd(TokenTransformBase):
 
         return lines_before + [new_line] + lines_after
 
-def make_tokens_by_line(lines):
+def make_tokens_by_line(lines:List[str]):
     """Tokenize a series of lines and group tokens by line.
 
-    The tokens for a multiline Python string or expression are
-    grouped as one line.
+    The tokens for a multiline Python string or expression are grouped as one
+    line. All lines except the last lines should keep their line ending ('\\n',
+    '\\r\\n') for this to properly work. Use `.splitlines(keeplineending=True)`
+    for example when passing block of text to this function.
+
     """
     # NL tokens are used inside multiline expressions, but also after blank
     # lines or comments. This is intentional - see https://bugs.python.org/issue17061
@@ -461,6 +464,8 @@ def make_tokens_by_line(lines):
     # track parentheses level, similar to the internals of tokenize.
     NEWLINE, NL = tokenize.NEWLINE, tokenize.NL
     tokens_by_line = [[]]
+    if len(lines) > 1 and not lines[0].endswith(('\n', '\r', '\r\n', '\x0b', '\x0c')):
+        warnings.warn("`make_tokens_by_line` received a list of lines which do not have lineending markers ('\\n', '\\r', '\\r\\n', '\\x0b', '\\x0c'), behavior will be unspecified")
     parenlev = 0
     try:
         for token in tokenize.generate_tokens(iter(lines).__next__):
@@ -599,7 +604,7 @@ class TransformerManager:
             else:
                 continue
 
-        if ends_with_newline:
+        if not ends_with_newline:
             # Append an newline for consistent tokenization
             # See https://bugs.python.org/issue33899
             cell += '\n'
@@ -644,10 +649,13 @@ class TransformerManager:
 
         newline_types = {tokenize.NEWLINE, tokenize.COMMENT, tokenize.ENDMARKER}
 
-        # Remove newline_types for the list of tokens
-        while len(tokens_by_line) > 1 and len(tokens_by_line[-1]) == 1 \
-                and tokens_by_line[-1][-1].type in newline_types:
-            tokens_by_line.pop()
+        # Pop the last line which only contains DEDENTs and ENDMARKER
+        last_token_line = None
+        if {t.type for t in tokens_by_line[-1]} in [
+            {tokenize.DEDENT, tokenize.ENDMARKER},
+            {tokenize.ENDMARKER}
+        ] and len(tokens_by_line) > 1:
+            last_token_line = tokens_by_line.pop()
 
         while tokens_by_line[-1] and tokens_by_line[-1][-1].type in newline_types:
             tokens_by_line[-1].pop()
@@ -680,7 +688,7 @@ class TransformerManager:
             if res is None:
                 return 'incomplete', find_last_indent(lines)
 
-        if tokens_by_line[-1][-1].type == tokenize.DEDENT:
+        if last_token_line and last_token_line[0].type == tokenize.DEDENT:
             if ends_with_newline:
                 return 'complete', None
             return 'incomplete', find_last_indent(lines)

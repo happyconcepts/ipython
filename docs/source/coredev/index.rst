@@ -12,7 +12,7 @@ developers of third party tools and libraries that use IPython should see the
 For instructions on how to make a developer install see :ref:`devinstall`.
 
 Backporting Pull requests
--------------------------
+=========================
 
 All pull requests should usually be made against ``master``, if a Pull Request
 need to be backported to an earlier release; then it should be tagged with the
@@ -67,7 +67,6 @@ to automatically list and apply the PR on other branches. For example:
 
 .. _release_process:
 
-=======================
 IPython release process
 =======================
 
@@ -216,19 +215,24 @@ We encourage creating a test build of the docs as well.
 
 Commit the changes to release.py::
 
-    git commit -am "release $VERSION"
+    git commit -am "release $VERSION" -S
     git push origin $BRANCH
+
+(omit the ``-S`` if you are no signing the package)
 
 Create and push the tag::
 
-    git tag -am "release $VERSION" "$VERSION"
+    git tag -am "release $VERSION" "$VERSION" -s
     git push origin $VERSION
 
-Update release.py back to ``x.y-dev`` or ``x.y-maint``, and re-add the
-``development`` entry in ``docs/source/whatsnew/index.rst`` and push::
+(omit the ``-s`` if you are no signing the package)
 
-    git commit -am "back to development"
+Update release.py back to ``x.y-dev`` or ``x.y-maint`` commit and push::
+
+    git commit -am "back to development" -S
     git push origin $BRANCH
+
+(omit the ``-S`` if you are no signing the package)
 
 Now checkout the tag we just made::
 

@@ -18,12 +18,12 @@ Overview
 ========
 
 Welcome to IPython.  Our full documentation is available on `ipython.readthedocs.io
-<https://ipython.readthedocs.io/en/stable/>`_ and contains information on how to install, use and
+<https://ipython.readthedocs.io/en/stable/>`_ and contains information on how to install, use, and
 contribute to the project.
 
 **IPython versions and Python Support**
 
-**IPython 7.0** requires Python version 3.4 and above.
+**IPython 7.0** requires Python version 3.5 and above.
 
 **IPython 6.x** requires Python version 3.3 and above.
 
@@ -87,7 +87,7 @@ manager.
 
 For more information see one of our blog posts:
 
-    https://blog.jupyter.org/2016/07/08/ipython-5-0-released/
+    https://blog.jupyter.org/release-of-ipython-5-0-8ce60b8d2e8e
 
 As well as the following Pull-Request for discussion:
 

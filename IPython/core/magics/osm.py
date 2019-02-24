@@ -24,12 +24,17 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.openpy import source_to_unicode
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.terminal import set_term_title
+from traitlets import Bool
 
 
 @magics_class
 class OSMagics(Magics):
     """Magics to interact with the underlying OS (shell-type functionality).
     """
+
+    cd_force_quiet = Bool(False,
+        help="Force %cd magic to be quiet even if -q is not passed."
+    ).tag(config=True)
 
     def __init__(self, shell=None, **kwargs):
 
@@ -55,7 +60,11 @@ class OSMagics(Magics):
         """
             Test for executible on a POSIX system
         """
-        return file.is_file() and os.access(file.path, os.X_OK)
+        if os.access(file.path, os.X_OK):
+            # will fail on maxOS if access is not X_OK
+            return file.is_file()
+        return False
+
 
     
     @skip_doctest
@@ -410,7 +419,7 @@ class OSMagics(Magics):
             if oldcwd != cwd:
                 dhist.append(cwd)
                 self.shell.db['dhist'] = compress_dhist(dhist)[-100:]
-        if not 'q' in opts and self.shell.user_ns['_dh']:
+        if not 'q' in opts and not self.cd_force_quiet and self.shell.user_ns['_dh']:
             print(self.shell.user_ns['_dh'][-1])
 
     @line_magic
@@ -816,7 +825,7 @@ class OSMagics(Magics):
         The file will be overwritten unless the -a (--append) flag is specified.
         """
         args = magic_arguments.parse_argstring(self.writefile, line)
-        if re.match(r'[\'*\']|["*"]', args.filename):
+        if re.match(r'^(\'.*\')|(".*")$', args.filename):
             filename = os.path.expanduser(args.filename[1:-1])
         else:
             filename = os.path.expanduser(args.filename)

@@ -16,6 +16,7 @@ import sys
 import time
 import timeit
 import math
+import re
 from pdb import Restart
 
 # cProfile was added in Python2.5
@@ -35,7 +36,8 @@ from IPython.core import page
 from IPython.core.error import UsageError
 from IPython.core.macro import Macro
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
-                                line_cell_magic, on_off, needs_local_scope)
+                                line_cell_magic, on_off, needs_local_scope,
+                                no_var_expand)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.capture import capture_output
@@ -183,6 +185,7 @@ python packages because of its non-free license. To use profiling, install the
 python-profiler package from non-free.""")
 
     @skip_doctest
+    @no_var_expand
     @line_cell_magic
     def prun(self, parameter_s='', cell=None):
 
@@ -292,6 +295,11 @@ python-profiler package from non-free.""")
         You can read the complete documentation for the profile module with::
 
           In [1]: import profile; profile.help()
+
+        .. versionchanged:: 7.3
+            User variables are no longer expanded,
+            the magic line is always left unmodified.
+
         """
         opts, arg_str = self.parse_options(parameter_s, 'D:l:rs:T:q',
                                            list_all=True, posix=False)
@@ -362,9 +370,8 @@ python-profiler package from non-free.""")
             print('\n*** Profile stats marshalled to file',\
                   repr(dump_file)+'.',sys_exit)
         if text_file:
-            pfile = open(text_file,'w')
-            pfile.write(output)
-            pfile.close()
+            with open(text_file, 'w') as pfile:
+                pfile.write(output)
             print('\n*** Profile printout saved to text file',\
                   repr(text_file)+'.',sys_exit)
 
@@ -421,6 +428,7 @@ python-profiler package from non-free.""")
         You can omit this in cell magic mode.
         """
     )
+    @no_var_expand
     @line_cell_magic
     def debug(self, line='', cell=None):
         """Activate the interactive debugger.
@@ -441,6 +449,11 @@ python-profiler package from non-free.""")
 
         If you want IPython to automatically do this on every exception, see
         the %pdb magic for more details.
+
+        .. versionchanged:: 7.3
+            When running code, user variables are no longer expanded,
+            the magic line is always left unmodified.
+
         """
         args = magic_arguments.parse_argstring(self.debug, line)
 
@@ -465,10 +478,35 @@ python-profiler package from non-free.""")
 
     @line_magic
     def tb(self, s):
-        """Print the last traceback with the currently active exception mode.
+        """Print the last traceback.
 
-        See %xmode for changing exception reporting modes."""
-        self.shell.showtraceback()
+        Optionally, specify an exception reporting mode, tuning the
+        verbosity of the traceback. By default the currently-active exception
+        mode is used. See %xmode for changing exception reporting modes.
+
+        Valid modes: Plain, Context, Verbose, and Minimal.
+        """
+        interactive_tb = self.shell.InteractiveTB
+        if s:
+            # Switch exception reporting mode for this one call.
+            # Ensure it is switched back.
+            def xmode_switch_err(name):
+                warn('Error changing %s exception modes.\n%s' %
+                    (name,sys.exc_info()[1]))
+
+            new_mode = s.strip().capitalize()
+            original_mode = interactive_tb.mode
+            try:
+                try:
+                    interactive_tb.set_mode(mode=new_mode)
+                except Exception:
+                    xmode_switch_err('user')
+                else:
+                    self.shell.showtraceback()
+            finally:
+                interactive_tb.set_mode(mode=original_mode)
+        else:
+            self.shell.showtraceback()
 
     @skip_doctest
     @line_magic
@@ -507,7 +545,7 @@ python-profiler package from non-free.""")
         *two* back slashes (e.g. ``\\\\*``) to suppress expansions.
         To completely disable these expansions, you can use -G flag.
 
-        On Windows systems, the use of single quotes `'` when specifing 
+        On Windows systems, the use of single quotes `'` when specifying 
         a file is not supported. Use double quotes `"`.
 
         Options:
@@ -646,7 +684,9 @@ python-profiler package from non-free.""")
                 return
             arg_lst = [modpath] + arg_lst
         try:
-            filename = file_finder(arg_lst[0])
+            fpath = None # initialize to make sure fpath is in scope later
+            fpath = arg_lst[0]
+            filename = file_finder(fpath)
         except IndexError:
             warn('you must provide at least a filename.')
             print('\n%run:\n', oinspect.getdoc(self.run))
@@ -656,6 +696,8 @@ python-profiler package from non-free.""")
                 msg = str(e)
             except UnicodeError:
                 msg = e.message
+            if os.name == 'nt' and re.match(r"^'.*'$",fpath):
+                warn('For Windows, use double quotes to wrap a filename: %run "mypath\\myfile.py"')
             error(msg)
             return
 
@@ -942,6 +984,7 @@ python-profiler package from non-free.""")
         print("Wall time: %10.2f s." % (twall1 - twall0))
 
     @skip_doctest
+    @no_var_expand
     @line_cell_magic
     @needs_local_scope
     def timeit(self, line='', cell=None, local_ns=None):
@@ -987,6 +1030,9 @@ python-profiler package from non-free.""")
         -o: return a TimeitResult that can be stored in a variable to inspect
             the result in more details.
 
+        .. versionchanged:: 7.3
+            User variables are no longer expanded,
+            the magic line is always left unmodified.
 
         Examples
         --------
@@ -1131,6 +1177,7 @@ python-profiler package from non-free.""")
             return timeit_result
 
     @skip_doctest
+    @no_var_expand
     @needs_local_scope
     @line_cell_magic
     def time(self,line='', cell=None, local_ns=None):
@@ -1145,11 +1192,15 @@ python-profiler package from non-free.""")
         - In line mode you can time a single-line statement (though multiple
           ones can be chained with using semicolons).
 
-        - In cell mode, you can time the cell body (a directly 
+        - In cell mode, you can time the cell body (a directly
           following statement raises an error).
 
-        This function provides very basic timing functionality.  Use the timeit 
+        This function provides very basic timing functionality.  Use the timeit
         magic for more control over the measurement.
+
+        .. versionchanged:: 7.3
+            User variables are no longer expanded,
+            the magic line is always left unmodified.
 
         Examples
         --------

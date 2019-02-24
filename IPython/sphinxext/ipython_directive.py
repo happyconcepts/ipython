@@ -82,7 +82,7 @@ ipython_savefig_dir:
     Sphinx source directory. The default is `html_static_path`.
 ipython_rgxin:
     The compiled regular expression to denote the start of IPython input
-    lines. The default is ``re.compile('In \[(\d+)\]:\s?(.*)\s*')``. You
+    lines. The default is ``re.compile('In \\[(\\d+)\\]:\\s?(.*)\\s*')``. You
     shouldn't need to change this.
 ipython_warning_is_error: [default to True]
     Fail the build if something unexpected happen, for example if a block raise
@@ -90,7 +90,7 @@ ipython_warning_is_error: [default to True]
     what is considered strict, may change between the sphinx directive version.
 ipython_rgxout:
     The compiled regular expression to denote the start of IPython output
-    lines. The default is ``re.compile('Out\[(\d+)\]:\s?(.*)\s*')``. You
+    lines. The default is ``re.compile('Out\\[(\\d+)\\]:\\s?(.*)\\s*')``. You
     shouldn't need to change this.
 ipython_promptin:
     The string to represent the IPython input prompt in the generated ReST.
@@ -579,7 +579,7 @@ class EmbeddedSphinxShell(object):
                                          w.filename, w.lineno, w.line)
                 sys.stdout.write(s)
                 sys.stdout.write('<<<' + ('-' * 73) + '\n')
-                if self.shell.warning_is_error:
+                if self.warning_is_error:
                     raise RuntimeError('Non Expected warning in `{}` line {}'.format(filename, lineno))
 
         self.cout.truncate(0)
@@ -1009,6 +1009,15 @@ class IPythonDirective(Directive):
 
                 if figure is not None:
                     figures.append(figure)
+            else:
+                message = 'Code input with no code at {}, line {}'\
+                            .format(
+                                self.state.document.current_source,
+                                self.state.document.current_line)
+                if self.shell.warning_is_error:
+                    raise RuntimeError(message)
+                else:
+                    warnings.warn(message)
 
         for figure in figures:
             lines.append('')
@@ -1038,9 +1047,9 @@ def setup(app):
     app.add_config_value('ipython_savefig_dir', 'savefig', 'env')
     app.add_config_value('ipython_warning_is_error', True, 'env')
     app.add_config_value('ipython_rgxin',
-                         re.compile('In \[(\d+)\]:\s?(.*)\s*'), 'env')
+                         re.compile(r'In \[(\d+)\]:\s?(.*)\s*'), 'env')
     app.add_config_value('ipython_rgxout',
-                         re.compile('Out\[(\d+)\]:\s?(.*)\s*'), 'env')
+                         re.compile(r'Out\[(\d+)\]:\s?(.*)\s*'), 'env')
     app.add_config_value('ipython_promptin', 'In [%d]:', 'env')
     app.add_config_value('ipython_promptout', 'Out[%d]:', 'env')
 

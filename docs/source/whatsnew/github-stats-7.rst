@@ -1,6 +1,112 @@
 Issues closed in the 7.x development cycle
 ==========================================
 
+Issues closed in 7.3
+--------------------
+
+GitHub stats for 2018/11/30 - 2019/02/18 (tag: 7.2.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 4 issues and merged 20 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.3>`__
+
+The following 17 authors contributed 99 commits.
+
+* anatoly techtonik
+* Benjamin Ragan-Kelley
+* Gabriel Potter
+* Ian Bell
+* Jake VanderPlas
+* Jan S. (Milania1)
+* Jesse Widner
+* Kyungdahm Yun
+* Laurent Gautier
+* Matthias Bussonnier
+* memeplex
+* Mickaël Schoentgen
+* Partha P. Mukherjee
+* Philipp A
+* Sanyam Agarwal
+* Steve Nicholson
+* Tony Fast
+
+Issues closed in 7.2
+--------------------
+
+GitHub stats for 2018/10/28 - 2018/11/29 (tag: 7.1.1)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 2 issues and merged 18 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.2>`__
+
+The following 16 authors contributed 95 commits.
+
+* Antony Lee
+* Benjamin Ragan-Kelley
+* CarsonGSmith
+* Chris Mentzel
+* Christopher Brown
+* Dan Allan
+* Elliott Morgan Jobson
+* is-this-valid
+* kd2718
+* Kevin Hess
+* Martin Bergtholdt
+* Matthias Bussonnier
+* Nicholas Bollweg
+* Pavel Karateev
+* Philipp A
+* Reuben Morais
+
+Issues closed in 7.1
+--------------------
+
+GitHub stats for 2018/09/27 - 2018/10/27 (since tag: 7.0.1)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 31 issues and merged 54 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A7.1>`__
+
+The following 33 authors contributed 254 commits.
+
+* ammarmallik
+* Audrey Dutcher
+* Bart Skowron
+* Benjamin Ragan-Kelley
+* BinaryCrochet
+* Chris Barker
+* Christopher Moura
+* Dedipyaman Das
+* Dominic Kuang
+* Elyashiv
+* Emil Hessman
+* felixzhuologist
+* hongshaoyang
+* Hugo
+* kd2718
+* kory donati
+* Kory Donati
+* koryd
+* luciana
+* luz.paz
+* Massimo Santini
+* Matthias Bussonnier
+* Matthias Geier
+* meeseeksdev[bot]
+* Michael Penkov
+* Mukesh Bhandarkar
+* Nguyen Duy Hai
+* Roy Wellington Ⅳ
+* Sha Liu
+* Shao Yang
+* Shashank Kumar
+* Tony Fast
+* wim glenn
+
+
 Issues closed in 7.0
 --------------------
 
