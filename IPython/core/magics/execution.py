@@ -49,6 +49,14 @@ from warnings import warn
 from logging import error
 from io import StringIO
 
+if sys.version_info > (3,8):
+    from ast import Module
+else :
+    # mock the new API, ignore second argument
+    # see https://github.com/ipython/ipython/issues/11590
+    from ast import Module as OriginalModule
+    Module = lambda nodelist, type_ignores: OriginalModule(nodelist)
+
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -926,6 +934,7 @@ python-profiler package from non-free.""")
                 deb._exec_filename = filename
             while True:
                 try:
+                    trace = sys.gettrace()
                     deb.run(code, code_ns)
                 except Restart:
                     print("Restarting")
@@ -935,6 +944,8 @@ python-profiler package from non-free.""")
                     continue
                 else:
                     break
+                finally:
+                    sys.settrace(trace)
             
 
         except:
@@ -1127,8 +1138,8 @@ python-profiler package from non-free.""")
         ns = {}
         glob = self.shell.user_ns
         # handles global vars with same name as local vars. We store them in conflict_globs.
-        if local_ns is not None:
-            conflict_globs = {}
+        conflict_globs = {}
+        if local_ns and cell is None:
             for var_name, var_val in glob.items():
                 if var_name in local_ns:
                     conflict_globs[var_name] = var_val
@@ -1154,9 +1165,8 @@ python-profiler package from non-free.""")
         timeit_result = TimeitResult(number, repeat, best, worst, all_runs, tc, precision)
 
         # Restore global vars from conflict_globs
-        if local_ns is not None:
-            if len(conflict_globs) > 0:
-                glob.update(conflict_globs)
+        if conflict_globs:
+           glob.update(conflict_globs)
                 
         if not quiet :
             # Check best timing is greater than zero to avoid a
@@ -1262,6 +1272,7 @@ python-profiler package from non-free.""")
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
 
+        expr_val=None
         if len(expr_ast.body)==1 and isinstance(expr_ast.body[0], ast.Expr):
             mode = 'eval'
             source = '<timed eval>'
@@ -1269,6 +1280,13 @@ python-profiler package from non-free.""")
         else:
             mode = 'exec'
             source = '<timed exec>'
+            # multi-line %%time case
+            if len(expr_ast.body) > 1 and isinstance(expr_ast.body[-1], ast.Expr):
+                expr_val= expr_ast.body[-1]
+                expr_ast = expr_ast.body[:-1]
+                expr_ast = Module(expr_ast, [])
+                expr_val = ast.Expression(expr_val.value)
+
         t0 = clock()
         code = self.shell.compile(expr_ast, source, mode)
         tc = clock()-t0
@@ -1290,11 +1308,16 @@ python-profiler package from non-free.""")
             st = clock2()
             try:
                 exec(code, glob, local_ns)
+                out=None
+                # multi-line %%time case
+                if expr_val is not None:
+                    code_2 = self.shell.compile(expr_val, source, 'eval')
+                    out = eval(code_2, glob, local_ns)
             except:
                 self.shell.showtraceback()
                 return
             end = clock2()
-            out = None
+
         wall_end = wtime()
         # Compute actual times and report
         wall_time = wall_end-wall_st

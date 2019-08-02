@@ -2,6 +2,156 @@
  7.x Series
 ============
 
+.. _version770:
+
+IPython 7.7.0
+=============
+
+IPython 7.7.0 contain multiple bug fixes and documentation updates; Here are a
+few of the outstanding issue fixed:
+
+   - Fix a bug introduced in 7.6 where the ``%matplotlib`` magic would fail on
+     previously acceptable arguments :ghpull:`11814`.
+   - Fix the manage location on freebsd :ghpull:`11808`.
+   - Fix error message about aliases after ``%reset`` call in ipykernel
+     :ghpull:`11806`
+   - Fix Duplication completions in emacs :ghpull:`11803`
+
+We are planning to adopt `NEP29 <https://github.com/numpy/numpy/pull/14086>`_
+(still currently in draft) which may make this minor version of IPython the
+last one to support Python 3.5 and will make the code base more aggressive
+toward removing compatibility with older versions of Python.
+
+GitHub now support to give only "Triage" permissions to users; if you'd like to
+help close stale issues and labels issues please reach to us with your GitHub
+Username and we'll add you to the triage team. It is a great way to start
+contributing and a path toward getting commit rights.
+
+.. _version761:
+
+IPython 7.6.1
+=============
+
+IPython 7.6.1 contain a critical bugfix in the ``%timeit`` magic, which would
+crash on some inputs as a side effect of :ghpull:`11716`. See :ghpull:`11812`
+
+
+.. _whatsnew760:
+
+IPython 7.6.0
+=============
+
+IPython 7.6.0 contains a couple of bug fixes and number of small features
+additions as well as some compatibility with the current development version of
+Python 3.8.
+
+   - Add a ``-l`` option to :magic:`psearch` to list the available search
+     types. :ghpull:`11672`
+   - Support ``PathLike`` for ``DisplayObject`` and ``Image``. :ghpull:`11764`
+   - Configurability of timeout in the test suite for slow platforms.
+     :ghpull:`11756`
+   - Accept any casing for matplotlib backend. :ghpull:`121748`
+   - Properly skip test that requires numpy to be installed :ghpull:`11723`
+   - More support for Python 3.8 and positional only arguments (pep570)
+     :ghpull:`11720`
+   - Unicode names for the completion are loaded lazily on first use which
+     should decrease startup time. :ghpull:`11693`
+   - Autoreload now update the types of reloaded objects; this for example allow
+     pickling of reloaded objects. :ghpull:`11644`
+   - Fix a bug where ``%%time`` magic would suppress cell output. :ghpull:`11716`
+
+
+Prepare migration to pytest (instead of nose) for testing
+---------------------------------------------------------
+
+Most of the work between 7.5 and 7.6 was to prepare the migration from our
+testing framework to pytest. Most of the test suite should now work by simply
+issuing ``pytest`` from the root of the repository.
+
+The migration to pytest is just at its beginning. Many of our test still rely
+on IPython-specific plugins for nose using pytest (doctest using IPython syntax
+is one example of this where test appear as "passing", while no code has been
+ran). Many test also need to be updated like ``yield-test`` to be properly
+parametrized tests.
+
+Migration to pytest allowed me to discover a number of issues in our test
+suite; which was hiding a number of subtle issues – or not actually running
+some of the tests in our test suite – I have thus corrected many of those; like
+improperly closed resources; or used of deprecated features. I also made use of
+the ``pytest --durations=...`` to find some of our slowest test and speed them
+up (our test suite can now be up to 10% faster). Pytest as also a variety of
+plugins and flags which will make the code quality of IPython and the testing
+experience better.
+
+Misc
+----
+
+We skipped the release of 7.6 at the end of May, but will attempt to get back
+on schedule. We are starting to think about making introducing backward
+incompatible change and start the 8.0 series.
+
+Special Thanks to Gabriel (@gpotter2 on GitHub), who among other took care many
+of the remaining task for 7.4 and 7.5, like updating the website.
+
+.. _whatsnew750:
+
+IPython 7.5.0
+=============
+
+IPython 7.5.0 consist mostly of bug-fixes, and documentation updates, with one
+minor new feature. The `Audio` display element can now be assigned an element
+id when displayed in browser. See :ghpull:`11670`
+
+The major outstanding bug fix correct a change of behavior that was introduce
+in 7.4.0 where some cell magics would not be able to access or modify global
+scope when using the ``@needs_local_scope`` decorator. This was typically
+encountered with the ``%%time`` and ``%%timeit`` magics. See :ghissue:`11659`
+and :ghpull:`11698`.
+
+.. _whatsnew740:
+
+IPython 7.4.0
+=============
+
+Unicode name completions
+------------------------
+
+Previously, we provided completion for a unicode name with its relative symbol.
+With this, now IPython provides complete suggestions to unicode name symbols.
+
+As on the PR, if user types ``\LAT<tab>``, IPython provides a list of
+possible completions. In this case, it would be something like::
+
+   'LATIN CAPITAL LETTER A',
+   'LATIN CAPITAL LETTER B',
+   'LATIN CAPITAL LETTER C',
+   'LATIN CAPITAL LETTER D',
+   ....
+
+This help to type unicode character that do not have short latex aliases, and
+have long unicode names. for example ``Ͱ``, ``\GREEK CAPITAL LETTER HETA``.
+
+This feature was contributed by Luciana Marques :ghpull:`11583`.
+
+Make audio normalization optional
+---------------------------------
+
+Added 'normalize' argument to `IPython.display.Audio`. This argument applies
+when audio data is given as an array of samples. The default of `normalize=True`
+preserves prior behavior of normalizing the audio to the maximum possible range.
+Setting to `False` disables normalization.
+
+
+Miscelanious
+------------
+
+ - Fix improper acceptation of ``return`` outside of functions. :ghpull:`11641`.
+ - Fixed PyQt 5.11 backwards incompatibility causing sip import failure.
+   :ghpull:`11613`.
+ - Fix Bug where ``type?`` would crash IPython. :ghpull:`1608`.
+ - Allow to apply ``@needs_local_scope`` to cell magics for convenience.
+   :ghpull:`11542`.
+
 .. _whatsnew730:
 
 IPython 7.3.0

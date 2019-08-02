@@ -39,32 +39,6 @@ possible.
 If the pull request cannot be automatically backported, the bot should tell you
 so on the PR and apply a "Need manual backport" tag to the origin PR.
 
-
-Backport with ghpro
--------------------
-
-We can also use `ghpro <https://pypi.python.org/pypi/ghpro>`_
-to automatically list and apply the PR on other branches. For example:
-
-.. code-block:: bash
-    
-    $ backport-pr todo --milestone 5.2
-    [...snip..]
-    The following PRs have been backported
-    9848
-    9851
-    9953
-    9955
-    The following PRs should be backported:
-    9417
-    9863
-    9925
-    9947
-
-    $ backport-pr apply 5.x 9947
-    [...snip...]
-
-
 .. _release_process:
 
 IPython release process
@@ -83,6 +57,9 @@ During the release process, you might need the extra following dependencies:
  - ``ghpro`` to generate the stats
 
 Make sure you have all the required dependencies to run the tests as well.
+
+You can try to ``source tools/release_helper.sh`` when releasing via bash, it 
+should guide you through most of the process.
 
 
 1. Set Environment variables

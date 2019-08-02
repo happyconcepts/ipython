@@ -38,7 +38,8 @@ repo_root = os.path.dirname(os.path.abspath(__file__))
 
 def execfile(fname, globs, locs=None):
     locs = locs or globs
-    exec(compile(open(fname).read(), fname, "exec"), globs, locs)
+    with open(fname) as f:
+        exec(compile(f.read(), fname, "exec"), globs, locs)
 
 # A little utility we'll need below, since glob() does NOT allow you to do
 # exclusion on multiple endings!
@@ -161,7 +162,10 @@ def find_data_files():
     Just man pages at this point.
     """
 
-    manpagebase = pjoin('share', 'man', 'man1')
+    if "freebsd" in sys.platform:
+        manpagebase = pjoin('man', 'man1')
+    else:
+        manpagebase = pjoin('share', 'man', 'man1')
 
     # Simple file lists can be made by hand
     manpages = [f for f in glob(pjoin('docs','man','*.1.gz')) if isfile(f)]

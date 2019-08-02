@@ -3,7 +3,6 @@ Test for async helpers.
 
 Should only trigger on python 3.5+ or will have syntax errors.
 """
-
 import sys
 from itertools import chain, repeat
 import nose.tools as nt
@@ -11,7 +10,7 @@ from textwrap import dedent, indent
 from unittest import TestCase
 from IPython.testing.decorators import skip_without
 
-ip = get_ipython()
+
 iprc = lambda x: ip.run_cell(dedent(x)).raise_error()
 iprc_nr = lambda x: ip.run_cell(dedent(x))
 
@@ -139,7 +138,13 @@ if sys.version_info > (3, 5):
             tl_err_test_cases = self._get_top_level_cases()
             tl_err_test_cases.extend(self._get_ry_syntax_errors())
 
-            vals = ('return', 'yield', 'yield from (_ for _ in range(3))')
+            vals = ('return', 'yield', 'yield from (_ for _ in range(3))',
+                    dedent('''
+                        def f():
+                            pass
+                        return
+                        '''),
+                    )
 
             for test_name, test_case in tl_err_test_cases:
                 # This example should work if 'pass' is used as the value
